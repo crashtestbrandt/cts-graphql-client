@@ -5,14 +5,14 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Text;
 
-namespace GraphQLSubClient
+namespace GraphQL
 {
-    public class GraphQLSubClient {
+    public class SubClient {
 
         private string apiUrl;
         private HttpClient httpClient;
 
-        public GraphQLSubClient(string _apiUrl, Dictionary<string, string> headers) {
+        public SubClient(string _apiUrl, Dictionary<string, string> headers) {
             apiUrl = _apiUrl;
             httpClient = new HttpClient();
             foreach (KeyValuePair<string, string> header in headers)

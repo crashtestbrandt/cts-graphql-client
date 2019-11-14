@@ -1,13 +1,16 @@
 ﻿using System;
-using GraphQLSubClient;
+using System.Collections.Generic;
+using GraphQL;
 
-namespace graphql_sub_client
+namespace Program
 {
     class Program
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
-        }
+            string url = "https://[apiurl.com]/[graphqlendpoint]";
+            Dictionary<string, string> headers = new Dictionary<string, string>();
+            headers.Add("Authorization", "Bearer: [TOKEN]");
+            SubClient subClient = new SubClient(url, headers);        }
     }
 }
