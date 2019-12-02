@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "/Users/bfrazier/projects/graphql-sub-client/graphql-sub-client.csproj": {}
+    "/home/frazbot/projects/graphql-sub-client/graphql-sub-client.csproj": {}
   },
   "projects": {
-    "/Users/bfrazier/projects/graphql-sub-client/graphql-sub-client.csproj": {
+    "/home/frazbot/projects/graphql-sub-client/graphql-sub-client.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/bfrazier/projects/graphql-sub-client/graphql-sub-client.csproj",
+        "projectUniqueName": "/home/frazbot/projects/graphql-sub-client/graphql-sub-client.csproj",
         "projectName": "graphql-sub-client",
-        "projectPath": "/Users/bfrazier/projects/graphql-sub-client/graphql-sub-client.csproj",
-        "packagesPath": "/Users/bfrazier/.nuget/packages/",
-        "outputPath": "/Users/bfrazier/projects/graphql-sub-client/obj/",
+        "projectPath": "/home/frazbot/projects/graphql-sub-client/graphql-sub-client.csproj",
+        "packagesPath": "/home/frazbot/.nuget/packages/",
+        "outputPath": "/home/frazbot/projects/graphql-sub-client/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "/Users/bfrazier/.nuget/NuGet/NuGet.Config"
+          "/home/frazbot/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "netcoreapp3.0"
@@ -56,7 +56,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/3.0.100/RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/3.0.100/RuntimeIdentifierGraph.json"
         }
       }
     }
