@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Amazon;
 using Amazon.CognitoIdentity;
@@ -15,12 +16,6 @@ namespace Program
         {
             Config config = LoadConfig();
             CredsManager credsManager = new CredsManager(config);
-
-            // TODO: Block elsewhere
-            while (credsManager.getAccessToken() == null) {
-                // nop
-            }
-
             GraphQLClient graphQLClient = new GraphQLClient(config, credsManager.getAccessToken());
             /*
             string listCharactersQuery = @"query listCharacters {
@@ -100,12 +95,12 @@ public class CredsManager {
     private string accessToken = null;
 
     public CredsManager(Config config) {
-        GetCredsAsync(config);
+        accessToken = GetCredsAsync(config).Result;
     }
 
     public string getAccessToken() => accessToken;
 
-    private async void GetCredsAsync(Config config) {
+    private async Task<string> GetCredsAsync(Config config) {
         AmazonCognitoIdentityProviderClient provider =
             new AmazonCognitoIdentityProviderClient(new Amazon.Runtime.AnonymousAWSCredentials(), RegionEndpoint.USEast2);
         CognitoUserPool userPool = new CognitoUserPool(config.userPoolId, config.userPoolClientId, provider);
@@ -116,13 +111,14 @@ public class CredsManager {
 
         AuthFlowResponse context = await user.StartWithSrpAuthAsync(authRequest).ConfigureAwait(false);
 
-        if (context.AuthenticationResult != null) Console.WriteLine("Authentication success");
-        else Console.WriteLine("Failed PSG authentication!");
+            // TODO: Custom exceptions and handlers
+            if (context.AuthenticationResult != null) Console.WriteLine("Authentication success");
+            else Console.WriteLine("Failed PSG authentication!");
 
-        credentials = user.GetCognitoAWSCredentials(config.identityPoolId, RegionEndpoint.USEast2);
-        if (credentials != null) Console.WriteLine("Acquired user credentials");
-        else Console.WriteLine("Failed to acquire user credentials!");
+            credentials = user.GetCognitoAWSCredentials(config.identityPoolId, RegionEndpoint.USEast2);
+            if (credentials != null) Console.WriteLine("Acquired user credentials");
+            else Console.WriteLine("Failed to acquire user credentials!");
 
-        accessToken = context.AuthenticationResult.AccessToken;
+            return context.AuthenticationResult.AccessToken;
     }
 }

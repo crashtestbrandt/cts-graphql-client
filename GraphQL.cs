@@ -62,12 +62,6 @@ namespace CTS
                 Console.WriteLine($"+ Payload = {Encoding.UTF8.GetString(e.ApplicationMessage.Payload)}");
                 Console.WriteLine();
                 Console.ResetColor();
-                /*
-                Task.Run(() =>
-                {
-                    mqttClient.PublishAsync(topic);
-                });
-                */
             });
 
             MqttClientSubscribeResult r1 = mqttClient.SubscribeAsync(new TopicFilterBuilder().WithTopic(topic).Build()).Result;
