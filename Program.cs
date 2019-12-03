@@ -8,6 +8,7 @@ using Amazon.CognitoIdentity;
 using Amazon.CognitoIdentityProvider;
 using Amazon.Extensions.CognitoAuthentication;
 using CTS;
+using System.Net.Http;
 
 namespace Program
 {
@@ -17,14 +18,43 @@ namespace Program
         {
             Config config = LoadConfig();
             CredsManager credsManager = new CredsManager(config);
+
+            // TODO: Block elsewhere
             while (credsManager.getAccessToken() == null) {
                 // nop
             }
 
-            Dictionary<string, string> headers = new Dictionary<string, string>();
-            headers.Add("authorization", credsManager.getAccessToken());
-            headers.Add("x-api-key", config.apiKey);
-            GraphQLClient graphQLClient = new GraphQLClient(config.httpEndpoint, headers);
+            GraphQLClient graphQLClient = new GraphQLClient(config, credsManager.getAccessToken());
+            string listCharactersQuery = @"query listCharacters {
+                listCharacters {
+                    items {
+                    id
+                    localPosition {
+                        x
+                        y
+                        z
+                    }
+                    localRotation {
+                        w
+                        x
+                        y
+                        z
+                    }
+                    parentId
+                    psgUserId
+                    items
+                    eventFlow
+                    avatar
+                    status
+                    ship
+                    }
+                }
+            }";
+            GraphQLQuery query = new GraphQLQuery(listCharactersQuery);
+
+            String result = graphQLClient.PostQuery(query).Result;
+            Console.WriteLine(result);
+
         }
 
         static Config LoadConfig()
@@ -38,16 +68,6 @@ namespace Program
             return config;
         }
     }
-}
-
-public class Config {
-    public string httpEndpoint;
-    public string apiKey;
-    public string userId;
-    public string userPass;
-	public string userPoolId;
-    public string userPoolClientId;
-    public string identityPoolId;
 }
 
 public class CredsManager {
