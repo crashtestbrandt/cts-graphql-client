@@ -6,6 +6,7 @@ using Amazon.CognitoIdentity;
 using Amazon.CognitoIdentityProvider;
 using Amazon.Extensions.CognitoAuthentication;
 using CTS;
+using System.Net.Http;
 
 namespace Program
 {
