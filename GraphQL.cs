@@ -9,10 +9,7 @@ using Newtonsoft.Json;
 using MQTTnet;
 using MQTTnet.Client.Options;
 using MQTTnet.Client.Subscribing;
-using MQTTnet.Client.Receiving;
-using MQTTnet.Client.Publishing;
 using MQTTnet.Client;
-using MQTTnet.Channel;
 
 namespace CTS
 {
