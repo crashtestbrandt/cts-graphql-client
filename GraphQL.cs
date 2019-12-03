@@ -1,11 +1,18 @@
 using System;
 using System.IO;
-using System.Net.Mqtt;
 using System.Net.Http;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Text;
 using Newtonsoft.Json;
+using MQTTnet;
+using MQTTnet.Client.Options;
+using MQTTnet.Client.Subscribing;
+using MQTTnet.Client.Receiving;
+using MQTTnet.Client.Publishing;
+using MQTTnet.Client;
+using MQTTnet.Channel;
 
 namespace CTS
 {
@@ -27,7 +34,7 @@ namespace CTS
             return DeserializeJsonFromStream<dynamic>(stream);
         }
 
-        public async Task<SubscriptionHttpResponseModel> AddSubscription(GraphQLQuery query, Action callbackMethod) {
+        public async Task<bool> AddSubscription(GraphQLQuery query, Action callbackMethod) {
             HttpContent httpContent = new StringContent(query.getPayload(), Encoding.UTF8, "application/json");
             HttpResponseMessage response = await httpClient.PostAsync(httpEndpoint, httpContent);
 
@@ -35,10 +42,54 @@ namespace CTS
 
             Stream stream = await response.Content.ReadAsStreamAsync();
             SubscriptionHttpResponseModel result = DeserializeJsonFromStream<SubscriptionHttpResponseModel>(stream);
-            string wsEndpoint = result.extensions.subscription.mqttConnections[0].url;
+            Uri wsUri = new Uri(result.extensions.subscription.mqttConnections[0].url);
+            string wsEndpoint = wsUri.Host + wsUri.PathAndQuery + wsUri.Fragment;
             string topic = result.extensions.subscription.mqttConnections[0].topics[0];
-            Console.WriteLine(wsEndpoint);
-            return result;
+            string clientId = result.extensions.subscription.mqttConnections[0].client;            
+
+            var factory = new MqttFactory();
+            var mqttClient = factory.CreateMqttClient();
+            var options = new MqttClientOptionsBuilder()
+                .WithWebSocketServer(wsEndpoint)
+                .WithTls()
+                .WithClientId(clientId)
+                .Build();
+
+            MQTTnet.Client.Connecting.MqttClientAuthenticateResult r0 = mqttClient.ConnectAsync(options, CancellationToken.None).Result;
+            Console.WriteLine("MQTT Connect: " + r0.ResultCode.ToString());
+
+            mqttClient.UseApplicationMessageReceivedHandler(e =>
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("Received message:");
+                Console.WriteLine($"+ Payload = {Encoding.UTF8.GetString(e.ApplicationMessage.Payload)}");
+                Console.WriteLine();
+                Console.ResetColor();
+                /*
+                Task.Run(() =>
+                {
+                    mqttClient.PublishAsync(topic);
+                });
+                */
+            });
+
+            MqttClientSubscribeResult r1 = mqttClient.SubscribeAsync(new TopicFilterBuilder().WithTopic(topic).Build()).Result;
+            Console.WriteLine("MQTT Subscription: " + r1.Items.ToString());
+            while (true) {}
+
+
+/*
+            mqttClient.UseConnectedHandler(async e =>
+            {
+                Console.WriteLine("Connected with server!");
+                await mqttClient.SubscribeAsync(new TopicFilterBuilder().WithTopic(topic).Build());
+                Console.WriteLine("Subscribed!");
+
+            });
+*/
+            return true;
+
+            // TODO: Return something about the callback?
         }
 
         private static T DeserializeJsonFromStream<T>(Stream stream)

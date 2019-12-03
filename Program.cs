@@ -6,7 +6,6 @@ using Amazon.CognitoIdentity;
 using Amazon.CognitoIdentityProvider;
 using Amazon.Extensions.CognitoAuthentication;
 using CTS;
-using System.Net.Http;
 
 namespace Program
 {
@@ -80,7 +79,7 @@ namespace Program
             string onUpdateCharacterVars = "{\"id\":\"c969ec45-08ee-47ff-bab3-6f9c57dbde67\"}";
             GraphQLQuery query = new GraphQLQuery(onUpdateCharacterQuery, "OnUpdateCharacter", onUpdateCharacterVars);
 
-            var content = graphQLClient.AddSubscription(query, null).Result;
+            bool stahp = graphQLClient.AddSubscription(query, null).Result;
         }
 
         static Config LoadConfig()
