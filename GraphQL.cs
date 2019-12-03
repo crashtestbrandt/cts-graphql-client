@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Net.Mqtt;
 using System.Net.Http;
 using System.Collections.Generic;
@@ -14,20 +15,75 @@ namespace CTS
         public GraphQLClient(Config config, string apiToken) {
             httpEndpoint = config.httpEndpoint;
             httpClient = new HttpClient();
-            //httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer");
             httpClient.DefaultRequestHeaders.Add("authorization", apiToken);
             httpClient.DefaultRequestHeaders.Add("x-api-key", config.apiKey);
         }
 
-        public async Task<string> PostQuery(GraphQLQuery query) {
-            HttpContent content = new StringContent(query.getPayload(), Encoding.UTF8, "application/json");
-            HttpResponseMessage response = await httpClient.PostAsync(httpEndpoint, content);
-            return response.Content.ReadAsStringAsync().Result;
+        public async Task<dynamic> PostQuery(GraphQLQuery query) {
+            HttpContent httpContent = new StringContent(query.getPayload(), Encoding.UTF8, "application/json");
+            HttpResponseMessage response = await httpClient.PostAsync(httpEndpoint, httpContent);
+            response.EnsureSuccessStatusCode();
+            Stream stream = await response.Content.ReadAsStreamAsync();
+            return DeserializeJsonFromStream<dynamic>(stream);
         }
 
-        public async void AddSubscription(string queryString, Action callbackMethod) {
-            HttpContent content = new StringContent("{\"query\":" + queryString, Encoding.UTF8, "application/json");
-            HttpResponseMessage response = await httpClient.PostAsync(httpEndpoint, content);  
+        public async Task<SubscriptionHttpResponseModel> AddSubscription(GraphQLQuery query, Action callbackMethod) {
+            HttpContent httpContent = new StringContent(query.getPayload(), Encoding.UTF8, "application/json");
+            HttpResponseMessage response = await httpClient.PostAsync(httpEndpoint, httpContent);
+
+            response.EnsureSuccessStatusCode();
+
+            Stream stream = await response.Content.ReadAsStreamAsync();
+            SubscriptionHttpResponseModel result = DeserializeJsonFromStream<SubscriptionHttpResponseModel>(stream);
+            string wsEndpoint = result.extensions.subscription.mqttConnections[0].url;
+            string topic = result.extensions.subscription.mqttConnections[0].topics[0];
+            Console.WriteLine(wsEndpoint);
+            return result;
+        }
+
+        private static T DeserializeJsonFromStream<T>(Stream stream)
+        {
+            if (stream == null || stream.CanRead == false)
+                return default(T);
+
+            using (var sr = new StreamReader(stream))
+            using (var jtr = new JsonTextReader(sr))
+            {
+                var js = new JsonSerializer();
+                var searchResult = js.Deserialize<T>(jtr);
+                return searchResult;
+            }
+        }
+
+        private static async Task<string> StreamToStringAsync(Stream stream)
+        {
+            string content = null;
+
+            if (stream != null)
+                using (var sr = new StreamReader(stream))
+                    content = await sr.ReadToEndAsync();
+
+            return content;
+        }
+
+        public class SubscriptionHttpResponseModel {
+            public Extensions extensions;
+            public Dictionary<string, string> data;
+
+            public class Extensions {
+                public Subscription subscription;
+
+                public class Subscription {
+                    public List<MqttConnections> mqttConnections;
+                    public Dictionary<string, Dictionary<string, string>> newSubscriptions;
+
+                    public class MqttConnections {
+                        public string url;
+                        public List<string> topics;
+                        public string client;
+                    }
+                }
+            }
         }
     }
 

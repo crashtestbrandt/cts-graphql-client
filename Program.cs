@@ -25,6 +25,7 @@ namespace Program
             }
 
             GraphQLClient graphQLClient = new GraphQLClient(config, credsManager.getAccessToken());
+            /*
             string listCharactersQuery = @"query listCharacters {
                 listCharacters {
                     items {
@@ -50,11 +51,38 @@ namespace Program
                     }
                 }
             }";
-            GraphQLQuery query = new GraphQLQuery(listCharactersQuery);
+            */
+            string onUpdateCharacterQuery = @"subscription OnUpdateCharacter(
+            $id: ID
+            ) {
+            onUpdateCharacter(
+                id: $id
+            ) {
+                id
+                localPosition {
+                x
+                y
+                z
+                }
+                localRotation {
+                w
+                x
+                y
+                z
+                }
+                parentId
+                psgUserId
+                items
+                eventFlow
+                avatar
+                status
+                ship
+            }
+            }";
+            string onUpdateCharacterVars = "{\"id\":\"c969ec45-08ee-47ff-bab3-6f9c57dbde67\"}";
+            GraphQLQuery query = new GraphQLQuery(onUpdateCharacterQuery, "OnUpdateCharacter", onUpdateCharacterVars);
 
-            String result = graphQLClient.PostQuery(query).Result;
-            Console.WriteLine(result);
-
+            var content = graphQLClient.AddSubscription(query, null).Result;
         }
 
         static Config LoadConfig()
