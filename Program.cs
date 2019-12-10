@@ -71,7 +71,7 @@ namespace Program
                 ship
             }
             }";
-            string onUpdateCharacterVars = "{\"id\":\"c969ec45-08ee-47ff-bab3-6f9c57dbde67\"}";
+            string onUpdateCharacterVars = "{\"id\":\"cbb3c87c-b3d2-4fd0-b091-104c2abbf87e\"}";
             GraphQLQuery query = new GraphQLQuery(onUpdateCharacterQuery, "OnUpdateCharacter", onUpdateCharacterVars);
 
             bool stahp = graphQLClient.AddSubscription(query, null).Result;

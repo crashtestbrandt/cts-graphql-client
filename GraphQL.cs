@@ -39,10 +39,28 @@ namespace CTS
 
             Stream stream = await response.Content.ReadAsStreamAsync();
             SubscriptionHttpResponseModel result = DeserializeJsonFromStream<SubscriptionHttpResponseModel>(stream);
-            Uri wsUri = new Uri(result.extensions.subscription.mqttConnections[0].url);
+            Console.WriteLine(JsonConvert.SerializeObject(result));
+
+            Uri wsUri = null;
+            string clientId = null;
+            string topic = result.extensions.subscription.newSubscriptions["onUpdateCharacter"]["topic"];
+            foreach (var conn in result.extensions.subscription.mqttConnections) {
+                if (wsUri == null) {
+                    foreach(var t in conn.topics) {
+                        if (String.Equals(topic, t)) {
+                            wsUri = new Uri(conn.url);
+                            clientId = conn.client;
+                            Console.WriteLine("Topic == " + t);
+                            break;
+                        } else {
+                            Console.WriteLine("Topic != " + t);
+                        }
+                    }
+                }
+            }
+            if (wsUri == null) Console.WriteLine("wsUri still null");
+
             string wsEndpoint = wsUri.Host + wsUri.PathAndQuery + wsUri.Fragment;
-            string topic = result.extensions.subscription.mqttConnections[0].topics[0];
-            string clientId = result.extensions.subscription.mqttConnections[0].client;            
 
             var factory = new MqttFactory();
             var mqttClient = factory.CreateMqttClient();
@@ -51,7 +69,7 @@ namespace CTS
                 .WithTls()
                 .WithClientId(clientId)
                 .Build();
-
+            Console.WriteLine(JsonConvert.SerializeObject(options));
             MQTTnet.Client.Connecting.MqttClientAuthenticateResult r0 = mqttClient.ConnectAsync(options, CancellationToken.None).Result;
             Console.WriteLine("MQTT Connect: " + r0.ResultCode.ToString());
 
